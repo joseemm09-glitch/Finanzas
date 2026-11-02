@@ -84,3 +84,4 @@ export function parseBanamexPayrollNotification(text: string): ParsedBanamexDepo
     time: timeStr,
   };
 }
+

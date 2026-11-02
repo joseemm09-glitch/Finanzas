@@ -83,3 +83,4 @@ assert.strictEqual(badParsed.isValid, false);
 console.log('✔ Test 4: Strict filter rejected non-matching account');
 
 console.log('ALL TESTS PASSED WITH 0 ERRORS.');
+

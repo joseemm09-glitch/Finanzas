@@ -238,3 +238,4 @@ export const OutflowModal: React.FC<OutflowModalProps> = ({ isOpen, onClose }) =
     </div>
   );
 };
+

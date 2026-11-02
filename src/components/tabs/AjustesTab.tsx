@@ -54,12 +54,13 @@ export const AjustesTab: React.FC = () => {
 
   const googleAppsScript = `/**
  * Google Apps Script para joseemm09@gmail.com
- * Ingesta automática de nómina Banamex Tarjeta ***194
+ * Ingesta de nómina Banamex Tarjeta ***194
+ * Horario garantizado: Miércoles 6:00 PM (18:00 hrs)
  */
 function syncBanamexPayroll() {
   const query = 'from:notificaciones@banamex.com "JOSE MARQUEZ" "194" "Depósito a cuenta o tarjeta" is:unread';
   const threads = GmailApp.search(query, 0, 5);
-  const endpoint = "https://" + ScriptApp.getService().getUrl().split('/')[2] + "/api/webhooks/banamex-payroll";
+  const endpoint = "https://finanzas-ios.vercel.app/api/webhooks/banamex-payroll";
 
   threads.forEach(function(thread) {
     thread.getMessages().forEach(function(msg) {
@@ -68,7 +69,7 @@ function syncBanamexPayroll() {
           text: msg.getPlainBody(),
           secret: "${state.settings.webhookSecret}"
         });
-        const res = UrlFetchApp.fetch("https://finanzas-ios.vercel.app/api/webhooks/banamex-payroll", {
+        const res = UrlFetchApp.fetch(endpoint, {
           method: "post",
           contentType: "application/json",
           payload: payload,
@@ -80,6 +81,25 @@ function syncBanamexPayroll() {
       }
     });
   });
+}
+
+/**
+ * Ejecutar UNA SOLA VEZ para programar la sincronización
+ * automática cada Miércoles a las 6:00 PM (18:00 hrs).
+ */
+function createWednesdayTrigger() {
+  // Elimina triggers previos para evitar duplicados
+  const triggers = ScriptApp.getProjectTriggers();
+  triggers.forEach(t => ScriptApp.deleteTrigger(t));
+
+  // Programa ejecución semanal cada Miércoles a las 18:00 hrs
+  ScriptApp.newTrigger("syncBanamexPayroll")
+    .timeBased()
+    .onWeekDay(ScriptApp.WeekDay.WEDNESDAY)
+    .atHour(18)
+    .create();
+    
+  Logger.log("Trigger configurado: Miércoles 6:00 PM");
 }`;
 
   const copyScriptToClipboard = () => {
@@ -359,3 +379,4 @@ function syncBanamexPayroll() {
     </div>
   );
 };
+

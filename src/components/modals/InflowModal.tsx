@@ -235,3 +235,4 @@ export const InflowModal: React.FC<InflowModalProps> = ({ isOpen, onClose }) => 
     </div>
   );
 };
+

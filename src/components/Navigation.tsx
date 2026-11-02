@@ -53,3 +53,4 @@ export const Navigation: React.FC<NavigationProps> = ({ currentTab, onChangeTab 
     </nav>
   );
 };
+

@@ -272,3 +272,4 @@ export const PatrimonioTab: React.FC = () => {
     </div>
   );
 };
+

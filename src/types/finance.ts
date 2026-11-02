@@ -110,3 +110,4 @@ export interface FinanceState {
     fondoAhorroTotal: number;
   };
 }
+

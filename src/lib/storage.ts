@@ -54,3 +54,4 @@ export function importStateFromJson(jsonString: string): FinanceState {
   saveStoredState(parsed);
   return parsed;
 }
+

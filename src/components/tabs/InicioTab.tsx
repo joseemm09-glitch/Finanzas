@@ -318,3 +318,4 @@ export const InicioTab: React.FC<InicioTabProps> = ({ onNavigateToTab }) => {
     </div>
   );
 };
+

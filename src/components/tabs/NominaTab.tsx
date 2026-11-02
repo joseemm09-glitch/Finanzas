@@ -157,7 +157,7 @@ export const NominaTab: React.FC = () => {
           <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
             Control Semanal de Pagos
           </span>
-          <span className="text-[11px] text-slate-400">Depósito viernes</span>
+          <span className="text-[11px] text-slate-400">Depósito miércoles (6:00 PM)</span>
         </div>
 
         {state.payrolls.length === 0 ? (
@@ -360,3 +360,4 @@ export const NominaTab: React.FC = () => {
     </div>
   );
 };
+
