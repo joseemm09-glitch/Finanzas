@@ -294,25 +294,6 @@ export const AhorroTab: React.FC = () => {
             );
           })}
         </div>
-
-        {/* Simbología del Calendario (Checador Style) */}
-        <div className="pt-3 border-t border-slate-100 space-y-1.5 text-xs">
-          <div className="text-[11px] font-bold text-[#1E3A8A]">
-            Simbología del Calendario:
-          </div>
-          <div className="flex items-center gap-2 text-slate-600 text-[11px]">
-            <span className="w-2.5 h-2.5 rounded-full bg-emerald-500 flex-shrink-0" />
-            <span>Franja Verde: Semana con ahorro del 20% nómina cubierto</span>
-          </div>
-          <div className="flex items-center gap-2 text-slate-600 text-[11px]">
-            <span className="w-2.5 h-2.5 rounded-full bg-slate-300 flex-shrink-0" />
-            <span>Casilla Blanca: Semana pendiente de ahorro</span>
-          </div>
-          <div className="flex items-center gap-2 text-slate-600 text-[11px]">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#2563EB] flex-shrink-0 ml-0.5" />
-            <span>Punto Azul: Miércoles de corte y depósito de nómina</span>
-          </div>
-        </div>
       </div>
 
       {/* Button: + Anotar Ahorro Semanal */}
