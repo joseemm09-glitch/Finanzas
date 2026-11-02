@@ -84,3 +84,4 @@ function configurarActivadorMiercoles() {
 
   Logger.log("ACTIVADOR CREADO CON ÉXITO: syncBanamexPayroll se ejecutará automáticamente cada Miércoles a las 6:00 PM.");
 }
+

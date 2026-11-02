@@ -1,0 +1,280 @@
+'use client';
+
+import React, { useState } from 'react';
+import { 
+  Building2, 
+  Droplet, 
+  Zap, 
+  Flame, 
+  Wifi, 
+  UtensilsCrossed, 
+  Compass, 
+  Tv, 
+  PiggyBank, 
+  ChevronRight, 
+  ChevronDown, 
+  Plus, 
+  Layers 
+} from 'lucide-react';
+import { useFinance } from '@/context/FinanceContext';
+import { formatCurrency } from '@/lib/calc';
+import { OutflowModal } from '@/components/modals/OutflowModal';
+import { TabType } from '@/components/Navigation';
+
+interface EgresosTabProps {
+  onNavigateToTab?: (tab: TabType) => void;
+}
+
+export const EgresosTab: React.FC<EgresosTabProps> = ({ onNavigateToTab }) => {
+  const { state, selectedMonth } = useFinance();
+  const [percentBase, setPercentBase] = useState<'nomina' | 'total'>('total');
+  const [isOutflowModalOpen, setIsOutflowModalOpen] = useState(false);
+
+  // Expanded sections
+  const [expandedSection, setExpandedSection] = useState<'basicos' | 'ocio' | 'ahorro' | null>('basicos');
+
+  // Month transactions
+  const monthTxs = state.transactions.filter((tx) => tx.date.startsWith(selectedMonth));
+
+  // Incomes for percentage calculation
+  const nominaInflows = monthTxs.filter(
+    (tx) => tx.type === 'inflow' && (tx.category === 'Nómina' || tx.tier === 'tier1_nomina')
+  );
+  const totalNomina = nominaInflows.reduce((sum, tx) => sum + tx.amount, 0);
+
+  const totalInflows = monthTxs
+    .filter((tx) => tx.type === 'inflow')
+    .reduce((sum, tx) => sum + tx.amount, 0);
+
+  const baseIncome = percentBase === 'nomina' ? totalNomina : totalInflows;
+
+  const calcPercent = (amount: number): string => {
+    if (baseIncome <= 0) return '0%';
+    return `${((amount / baseIncome) * 100).toFixed(1)}%`;
+  };
+
+  // Helper to sum by matching keywords in category or concept
+  const sumItems = (keywords: string[]): number => {
+    return monthTxs
+      .filter((tx) => {
+        if (tx.type !== 'outflow') return false;
+        const text = `${tx.category} ${tx.concept}`.toLowerCase();
+        return keywords.some((k) => text.includes(k.toLowerCase()));
+      })
+      .reduce((sum, tx) => sum + tx.amount, 0);
+  };
+
+  // Básicos sub-items
+  const basicosItems = [
+    { label: 'Renta', icon: Building2, amount: sumItems(['renta']) },
+    { label: 'Agua', icon: Droplet, amount: sumItems(['agua']) },
+    { label: 'Luz', icon: Zap, amount: sumItems(['luz', 'cfe']) },
+    { label: 'Gas', icon: Flame, amount: sumItems(['gas']) },
+    { label: 'Internet', icon: Wifi, amount: sumItems(['internet', 'wifi', 'fibra']) },
+  ];
+  const totalBasicos = basicosItems.reduce((sum, item) => sum + item.amount, 0);
+
+  // Ocio sub-items
+  const ocioItems = [
+    { label: 'Comidas', icon: UtensilsCrossed, amount: sumItems(['comida', 'restaurante', 'almuerzo', 'cena']) },
+    { label: 'Salidas', icon: Compass, amount: sumItems(['salida', 'bar', 'evento', 'concierto', 'cine']) },
+    { label: 'Suscripciones', icon: Tv, amount: sumItems(['suscripción', 'suscripcion', 'plataforma', 'spotify', 'netflix', 'icloud', 'youtube', 'chatgpt']) },
+  ];
+  const totalOcio = ocioItems.reduce((sum, item) => sum + item.amount, 0);
+
+  // Ahorro
+  const ahorroAmount = monthTxs
+    .filter(
+      (tx) =>
+        tx.category === 'Inversión Liquidez 15%' ||
+        tx.category === 'Ahorro' ||
+        tx.pillar === 'patrimonio_inversion'
+    )
+    .reduce((sum, tx) => sum + tx.amount, 0);
+
+  const totalAllOutflows = totalBasicos + totalOcio + ahorroAmount;
+
+  return (
+    <div className="pt-4 pb-24 space-y-4 animate-in fade-in duration-150">
+      {/* Top Header with Base Toggle (Nómina vs Total) */}
+      <div className="flex items-center justify-between pb-1">
+        <div>
+          <h2 className="text-xs font-bold uppercase tracking-wider text-slate-500">Egresos</h2>
+          <div className="text-[11px] text-slate-400">
+            Base: {formatCurrency(baseIncome)}
+          </div>
+        </div>
+
+        {/* Toggle Button Nómina / Total */}
+        <div className="flex items-center bg-slate-200/80 p-0.5 rounded-full text-xs font-semibold">
+          <button
+            type="button"
+            onClick={() => setPercentBase('nomina')}
+            className={`px-3 py-1 rounded-full transition-all ${
+              percentBase === 'nomina'
+                ? 'bg-white text-[#1E3A8A] shadow-sm font-bold'
+                : 'text-slate-600 hover:text-slate-900'
+            }`}
+          >
+            Nómina
+          </button>
+          <button
+            type="button"
+            onClick={() => setPercentBase('total')}
+            className={`px-3 py-1 rounded-full transition-all ${
+              percentBase === 'total'
+                ? 'bg-white text-[#1E3A8A] shadow-sm font-bold'
+                : 'text-slate-600 hover:text-slate-900'
+            }`}
+          >
+            Total
+          </button>
+        </div>
+      </div>
+
+      {/* 3 Main Pillars: Básicos, Ocio, Ahorro */}
+      <div className="space-y-3">
+        {/* 1. Básicos */}
+        <div className="card-clean overflow-hidden left-bar-navy">
+          <button
+            type="button"
+            onClick={() => setExpandedSection(expandedSection === 'basicos' ? null : 'basicos')}
+            className="w-full p-4 flex items-center justify-between text-left hover:bg-slate-50 transition-colors"
+          >
+            <div className="flex items-center gap-2.5">
+              <span className="text-sm font-bold text-slate-900">Básicos</span>
+              <span className="text-[11px] font-mono text-slate-500">
+                ({calcPercent(totalBasicos)})
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-black font-mono text-[#1E3A8A]">
+                {formatCurrency(totalBasicos)}
+              </span>
+              {expandedSection === 'basicos' ? (
+                <ChevronDown strokeWidth={1.75} className="w-4 h-4 text-slate-400" />
+              ) : (
+                <ChevronRight strokeWidth={1.75} className="w-4 h-4 text-slate-400" />
+              )}
+            </div>
+          </button>
+
+          {expandedSection === 'basicos' && (
+            <div className="px-4 pb-4 pt-1 border-t border-slate-100 space-y-2 bg-slate-50/50">
+              {basicosItems.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <div key={item.label} className="flex items-center justify-between text-xs py-1.5 border-b border-slate-100 last:border-none">
+                    <div className="flex items-center gap-2 text-slate-700">
+                      <Icon strokeWidth={1.75} className="w-3.5 h-3.5 text-slate-500" />
+                      <span className="font-medium">{item.label}</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <span className="text-[10px] font-mono text-slate-400">
+                        {calcPercent(item.amount)}
+                      </span>
+                      <span className="font-mono font-bold text-slate-800">
+                        {formatCurrency(item.amount)}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* 2. Ocio */}
+        <div className="card-clean overflow-hidden left-bar-amber">
+          <button
+            type="button"
+            onClick={() => setExpandedSection(expandedSection === 'ocio' ? null : 'ocio')}
+            className="w-full p-4 flex items-center justify-between text-left hover:bg-slate-50 transition-colors"
+          >
+            <div className="flex items-center gap-2.5">
+              <span className="text-sm font-bold text-slate-900">Ocio</span>
+              <span className="text-[11px] font-mono text-amber-700 font-semibold">
+                ({calcPercent(totalOcio)})
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-black font-mono text-slate-900">
+                {formatCurrency(totalOcio)}
+              </span>
+              {expandedSection === 'ocio' ? (
+                <ChevronDown strokeWidth={1.75} className="w-4 h-4 text-slate-400" />
+              ) : (
+                <ChevronRight strokeWidth={1.75} className="w-4 h-4 text-slate-400" />
+              )}
+            </div>
+          </button>
+
+          {expandedSection === 'ocio' && (
+            <div className="px-4 pb-4 pt-1 border-t border-slate-100 space-y-2 bg-slate-50/50">
+              {ocioItems.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <div key={item.label} className="flex items-center justify-between text-xs py-1.5 border-b border-slate-100 last:border-none">
+                    <div className="flex items-center gap-2 text-slate-700">
+                      <Icon strokeWidth={1.75} className="w-3.5 h-3.5 text-amber-600" />
+                      <span className="font-medium">{item.label}</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <span className="text-[10px] font-mono text-slate-400">
+                        {calcPercent(item.amount)}
+                      </span>
+                      <span className="font-mono font-bold text-slate-800">
+                        {formatCurrency(item.amount)}
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* 3. Ahorro (con enlace a pestaña Ahorro) */}
+        <div className="card-clean p-4 flex items-center justify-between left-bar-emerald">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-emerald-50 text-emerald-600 rounded-xl">
+              <PiggyBank strokeWidth={1.75} className="w-5 h-5" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-bold text-slate-900">Ahorro</span>
+                <span className="text-[11px] font-mono font-semibold text-emerald-700">
+                  ({calcPercent(ahorroAmount)})
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => onNavigateToTab && onNavigateToTab('ahorro')}
+                className="text-[10px] text-[#2563EB] hover:underline font-semibold mt-0.5 flex items-center gap-0.5"
+              >
+                <span>Ver calendario semanal</span>
+                <ChevronRight strokeWidth={1.75} className="w-3 h-3" />
+              </button>
+            </div>
+          </div>
+          <div className="text-base font-black font-mono text-emerald-700">
+            {formatCurrency(ahorroAmount)}
+          </div>
+        </div>
+      </div>
+
+      {/* Button: + Registrar Egreso */}
+      <button
+        type="button"
+        onClick={() => setIsOutflowModalOpen(true)}
+        className="w-full py-3 bg-[#2563EB] hover:bg-blue-700 text-white font-semibold text-xs rounded-xl flex items-center justify-center gap-2 shadow-sm active:scale-98 transition-all"
+      >
+        <Plus strokeWidth={2} className="w-4 h-4 text-white" />
+        <span>Registrar Egreso</span>
+      </button>
+
+      {/* Outflow Modal */}
+      <OutflowModal isOpen={isOutflowModalOpen} onClose={() => setIsOutflowModalOpen(false)} />
+    </div>
+  );
+};

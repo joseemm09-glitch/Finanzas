@@ -241,3 +241,109 @@ export function formatCurrency(amount: number): string {
   }).format(amount);
 }
 
+export interface MonthWeekSaving {
+  weekIndex: number;
+  label: string;
+  wednesdayDate: string;
+  startDate: string;
+  endDate: string;
+  amountSaved: number;
+  isCovered: boolean;
+  isElapsed: boolean;
+}
+
+/**
+ * Calculates weekly savings calendar for the given month.
+ * Identifies each Wednesday of the month and tracks if at least $1,000 MXN was saved.
+ */
+export function getMonthSavingsCalendar(
+  transactions: Transaction[],
+  yearMonth: string, // 'YYYY-MM'
+  targetPerWeek: number = 1000
+): {
+  weeks: MonthWeekSaving[];
+  coveredWeeks: number;
+  elapsedWeeks: number;
+  totalWeeks: number;
+  totalSaved: number;
+} {
+  const [yearStr, monthStr] = yearMonth.split('-');
+  const year = parseInt(yearStr);
+  const month = parseInt(monthStr) - 1; // 0-indexed
+
+  // Today reference (for 2026 or current clock)
+  const todayStr = '2026-11-02'; // or current system date
+
+  // Find all Wednesdays in the month
+  const wednesdays: Date[] = [];
+  const cur = new Date(year, month, 1, 12, 0, 0);
+
+  while (cur.getMonth() === month) {
+    if (cur.getDay() === 3) { // 3 is Wednesday
+      wednesdays.push(new Date(cur));
+    }
+    cur.setDate(cur.getDate() + 1);
+  }
+
+  // Savings transactions for this month
+  const savingsTxs = transactions.filter(
+    (tx) =>
+      tx.category === 'Inversión Liquidez 15%' ||
+      tx.category === 'Ahorro' ||
+      tx.pillar === 'patrimonio_inversion' ||
+      tx.concept.toLowerCase().includes('ahorro') ||
+      tx.concept.toLowerCase().includes('inversión')
+  );
+
+  let totalSaved = 0;
+  const weeks: MonthWeekSaving[] = wednesdays.map((wed, idx) => {
+    // Week bounds: Monday (Wed - 2) to Sunday (Wed + 4)
+    const mon = new Date(wed);
+    mon.setDate(wed.getDate() - 2);
+    const sun = new Date(wed);
+    sun.setDate(wed.getDate() + 4);
+
+    const monStr = mon.toISOString().split('T')[0];
+    const sunStr = sun.toISOString().split('T')[0];
+    const wedStr = wed.toISOString().split('T')[0];
+
+    // Find txs within this week
+    const weekTxs = savingsTxs.filter((tx) => {
+      return tx.date >= monStr && tx.date <= sunStr;
+    });
+
+    const amountSaved = Math.round(weekTxs.reduce((sum, tx) => sum + tx.amount, 0) * 100) / 100;
+    totalSaved += amountSaved;
+
+    const isCovered = amountSaved >= targetPerWeek;
+    // Week is elapsed if current date is past Monday of this week, or if viewing past month
+    const isPastMonth = yearMonth < '2026-11';
+    const isElapsed = isPastMonth || todayStr >= monStr;
+
+    return {
+      weekIndex: idx + 1,
+      label: `Semana ${idx + 1}`,
+      wednesdayDate: wedStr,
+      startDate: monStr,
+      endDate: sunStr,
+      amountSaved,
+      isCovered,
+      isElapsed,
+    };
+  });
+
+  const coveredWeeks = weeks.filter((w) => w.isCovered).length;
+  // Elapsed weeks is at least 1 if in current month
+  let elapsedWeeks = weeks.filter((w) => w.isElapsed).length;
+  if (elapsedWeeks === 0 && weeks.length > 0) elapsedWeeks = 1;
+
+  return {
+    weeks,
+    coveredWeeks,
+    elapsedWeeks: Math.min(elapsedWeeks, weeks.length),
+    totalWeeks: weeks.length,
+    totalSaved: Math.round(totalSaved * 100) / 100,
+  };
+}
+
+

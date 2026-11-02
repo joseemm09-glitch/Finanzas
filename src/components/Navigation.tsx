@@ -1,9 +1,9 @@
 'use client';
 
 import React from 'react';
-import { LayoutDashboard, ArrowLeftRight, Landmark, TrendingUp, Settings } from 'lucide-react';
+import { LayoutDashboard, ArrowDownLeft, ArrowUpRight, PiggyBank, ShieldCheck } from 'lucide-react';
 
-export type TabType = 'inicio' | 'movimientos' | 'nomina' | 'patrimonio' | 'ajustes';
+export type TabType = 'inicio' | 'ingresos' | 'egresos' | 'ahorro' | 'patrimonio';
 
 interface NavigationProps {
   currentTab: TabType;
@@ -13,10 +13,10 @@ interface NavigationProps {
 export const Navigation: React.FC<NavigationProps> = ({ currentTab, onChangeTab }) => {
   const tabs: { id: TabType; label: string; icon: React.ElementType }[] = [
     { id: 'inicio', label: 'Inicio', icon: LayoutDashboard },
-    { id: 'movimientos', label: 'Movimientos', icon: ArrowLeftRight },
-    { id: 'nomina', label: 'Nómina', icon: Landmark },
-    { id: 'patrimonio', label: 'Patrimonio', icon: TrendingUp },
-    { id: 'ajustes', label: 'Ajustes', icon: Settings },
+    { id: 'ingresos', label: 'Ingresos', icon: ArrowDownLeft },
+    { id: 'egresos', label: 'Egresos', icon: ArrowUpRight },
+    { id: 'ahorro', label: 'Ahorro', icon: PiggyBank },
+    { id: 'patrimonio', label: 'Patrimonio', icon: ShieldCheck },
   ];
 
   return (
@@ -53,4 +53,3 @@ export const Navigation: React.FC<NavigationProps> = ({ currentTab, onChangeTab 
     </nav>
   );
 };
-
