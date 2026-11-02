@@ -1,7 +1,7 @@
 import { FinanceState } from '@/types/finance';
 import { INITIAL_STATE } from '@/lib/constants';
 
-const STORAGE_KEY = 'finanzas_jose_marquez_v1';
+const STORAGE_KEY = 'finanzas_jose_marquez_v3';
 
 export function loadStoredState(): FinanceState {
   if (typeof window === 'undefined') {
