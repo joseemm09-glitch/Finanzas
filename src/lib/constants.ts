@@ -71,7 +71,7 @@ export const INITIAL_SUBSCRIPTIONS: Subscription[] = [
 ];
 
 export const INITIAL_STATE: FinanceState = {
-  version: 4,
+  version: 5,
   settings: INITIAL_SETTINGS,
   ppr: INITIAL_PPR,
   subscriptions: INITIAL_SUBSCRIPTIONS,

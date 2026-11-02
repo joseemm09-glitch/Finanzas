@@ -64,9 +64,13 @@ export const EgresosTab: React.FC<EgresosTabProps> = ({ onNavigateToTab }) => {
       .reduce((sum, tx) => sum + tx.amount, 0);
   };
 
-  // Básicos sub-items
+  // Básicos sub-items (Renta fija de $9,500 cada día 9)
+  const recordedRent = sumItems(['renta']);
+  const fixedRent = state.settings.fixedRentAmount || 9500.00;
+  const rentToDisplay = recordedRent > 0 ? recordedRent : fixedRent;
+
   const basicosItems = [
-    { label: 'Renta', icon: Building2, amount: sumItems(['renta']) },
+    { label: 'Renta (Fija Día 9)', icon: Building2, amount: rentToDisplay },
     { label: 'Agua', icon: Droplet, amount: sumItems(['agua']) },
     { label: 'Luz', icon: Zap, amount: sumItems(['luz', 'cfe']) },
     { label: 'Gas', icon: Flame, amount: sumItems(['gas']) },
