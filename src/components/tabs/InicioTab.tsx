@@ -1,8 +1,10 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useFinance } from '@/context/FinanceContext';
 import { getMonthlyMetrics, getMonthSavingsCalendar, formatCurrency } from '@/lib/calc';
+import { InflowModal } from '@/components/modals/InflowModal';
+import { OutflowModal } from '@/components/modals/OutflowModal';
 
 const MONTH_NAMES: Record<string, string> = {
   '01': 'Enero',
@@ -21,8 +23,10 @@ const MONTH_NAMES: Record<string, string> = {
 
 export const InicioTab: React.FC = () => {
   const { state, selectedMonth } = useFinance();
+  const [isInflowOpen, setIsInflowOpen] = useState(false);
+  const [isOutflowOpen, setIsOutflowOpen] = useState(false);
 
-  const [year, month] = selectedMonth.split('-');
+  const [, month] = selectedMonth.split('-');
   const monthName = MONTH_NAMES[month] || selectedMonth;
 
   // Current system / demo month is '2026-11'
@@ -32,7 +36,7 @@ export const InicioTab: React.FC = () => {
   const savings = getMonthSavingsCalendar(state.transactions, selectedMonth, state.settings.weekly15Target);
 
   return (
-    <div className="pt-8 pb-24 px-2 space-y-10 animate-in fade-in duration-200">
+    <div className="pt-6 pb-24 px-2 space-y-6 animate-in fade-in duration-200">
       {/* Greeting Header */}
       <div className="space-y-1">
         <h1 className="text-3xl font-normal text-slate-800 tracking-tight">
@@ -52,9 +56,9 @@ export const InicioTab: React.FC = () => {
       </div>
 
       {/* 3 Core Minimalist Metrics */}
-      <div className="card-clean p-6 space-y-6">
+      <div className="card-clean p-6 space-y-5">
         {/* Ingresos */}
-        <div className="flex items-baseline justify-between border-b border-slate-100 pb-4">
+        <div className="flex items-baseline justify-between border-b border-slate-100 pb-3.5">
           <span className="text-sm font-medium text-slate-500">Ingresos</span>
           <span className="text-xl font-bold font-mono text-[#1E3A8A]">
             {formatCurrency(metrics.inflows)}
@@ -62,7 +66,7 @@ export const InicioTab: React.FC = () => {
         </div>
 
         {/* Egresos */}
-        <div className="flex items-baseline justify-between border-b border-slate-100 pb-4">
+        <div className="flex items-baseline justify-between border-b border-slate-100 pb-3.5">
           <span className="text-sm font-medium text-slate-500">Egresos</span>
           <span className="text-xl font-bold font-mono text-slate-800">
             {formatCurrency(metrics.outflows)}
@@ -70,13 +74,36 @@ export const InicioTab: React.FC = () => {
         </div>
 
         {/* Semanas Ahorro */}
-        <div className="flex items-baseline justify-between pt-1">
+        <div className="flex items-baseline justify-between pt-0.5">
           <span className="text-sm font-medium text-slate-500">Semanas Ahorro</span>
           <span className="text-xl font-bold font-mono text-emerald-700">
             {savings.coveredWeeks} / {savings.elapsedWeeks}
           </span>
         </div>
       </div>
+
+      {/* Dos botones grandes en azul con letras blancas en negritas: Ingreso / Egreso */}
+      <div className="grid grid-cols-2 gap-3 pt-2">
+        <button
+          type="button"
+          onClick={() => setIsInflowOpen(true)}
+          className="w-full py-4 bg-[#2563EB] hover:bg-blue-700 active:scale-98 text-white rounded-2xl font-bold text-base shadow-sm tracking-wide transition-all text-center"
+        >
+          Ingreso
+        </button>
+
+        <button
+          type="button"
+          onClick={() => setIsOutflowOpen(true)}
+          className="w-full py-4 bg-[#2563EB] hover:bg-blue-700 active:scale-98 text-white rounded-2xl font-bold text-base shadow-sm tracking-wide transition-all text-center"
+        >
+          Egreso
+        </button>
+      </div>
+
+      {/* Modals for Quick Entry */}
+      <InflowModal isOpen={isInflowOpen} onClose={() => setIsInflowOpen(false)} />
+      <OutflowModal isOpen={isOutflowOpen} onClose={() => setIsOutflowOpen(false)} />
     </div>
   );
 };

@@ -148,3 +148,4 @@ export const IngresosTab: React.FC = () => {
     </div>
   );
 };
+

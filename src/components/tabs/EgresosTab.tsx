@@ -278,3 +278,4 @@ export const EgresosTab: React.FC<EgresosTabProps> = ({ onNavigateToTab }) => {
     </div>
   );
 };
+
