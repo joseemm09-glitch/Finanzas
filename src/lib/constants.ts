@@ -13,6 +13,9 @@ export const INITIAL_SETTINGS: UserSettings = {
   annual15YieldRate: 0.15,
   udiExchangeRate: 8.8658,
   pprMonthlyAccrual: 2418.00,
+  fixedRentAmount: 9500.00,
+  fixedRentDay: 9,
+  emergencyFundTarget: 45000.00, // 3 meses de gastos operativos/básicos sanos ($15k/mes)
   webhookSecret: 'banamex_sec_jm09_2026',
 };
 
@@ -68,7 +71,7 @@ export const INITIAL_SUBSCRIPTIONS: Subscription[] = [
 ];
 
 export const INITIAL_STATE: FinanceState = {
-  version: 3,
+  version: 4,
   settings: INITIAL_SETTINGS,
   ppr: INITIAL_PPR,
   subscriptions: INITIAL_SUBSCRIPTIONS,
@@ -78,7 +81,7 @@ export const INITIAL_STATE: FinanceState = {
     gasolineVoucher: 0.00,
     vehicleFund: 0.00,
     projectFreeBucket: 0.00,
-    investment15Balance: 0.00,
+    investment15Balance: 17347.51, // Ahorro inicial real
     investment15StartDate: '2026-11-02',
     fondoAhorroTotal: 0.00,
   },

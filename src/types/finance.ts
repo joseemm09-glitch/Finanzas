@@ -77,6 +77,9 @@ export interface UserSettings {
   annual15YieldRate: number; // default 0.15
   udiExchangeRate: number; // default 8.8658
   pprMonthlyAccrual: number; // default 2418
+  fixedRentAmount: number; // default 9500
+  fixedRentDay: number; // default 9
+  emergencyFundTarget: number; // default 45000 (3 months of essential costs)
   webhookSecret: string;
 }
 
