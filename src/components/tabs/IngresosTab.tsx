@@ -5,6 +5,7 @@ import { Plus, Landmark, Compass, ChevronDown, ChevronUp } from 'lucide-react';
 import { useFinance } from '@/context/FinanceContext';
 import { formatCurrency } from '@/lib/calc';
 import { InflowModal } from '@/components/modals/InflowModal';
+import { FloatingPieChart } from '@/components/charts/FloatingPieChart';
 
 export const IngresosTab: React.FC = () => {
   const { state, selectedMonth } = useFinance();
@@ -98,6 +99,39 @@ export const IngresosTab: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Gráfica de pastel flotante para Ingresos */}
+      {totalIncome > 0 && (
+        <div className="space-y-1 pt-1">
+          <div className="px-1 text-[11px] font-bold uppercase tracking-wider text-slate-400">
+            Composición de Ingresos
+          </div>
+          <FloatingPieChart
+            totalLabel="Total Ingresos"
+            totalFormatted={formatCurrency(totalIncome)}
+            data={[
+              {
+                label: 'Nómina',
+                value: totalNomina,
+                color: '#1E3A8A',
+                secondaryText: formatCurrency(totalNomina),
+              },
+              {
+                label: 'Proyectos',
+                value: totalProyectos,
+                color: '#2563EB',
+                secondaryText: formatCurrency(totalProyectos),
+              },
+              {
+                label: 'Otros',
+                value: totalOther,
+                color: '#0D9488',
+                secondaryText: formatCurrency(totalOther),
+              },
+            ]}
+          />
+        </div>
+      )}
 
       {/* Button: + Registrar Ingreso */}
       <button

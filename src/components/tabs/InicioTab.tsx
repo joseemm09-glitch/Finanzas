@@ -5,6 +5,7 @@ import { useFinance } from '@/context/FinanceContext';
 import { getMonthlyMetrics, getMonthSavingsCalendar, formatCurrency } from '@/lib/calc';
 import { InflowModal } from '@/components/modals/InflowModal';
 import { OutflowModal } from '@/components/modals/OutflowModal';
+import { FloatingPieChart } from '@/components/charts/FloatingPieChart';
 
 const MONTH_NAMES: Record<string, string> = {
   '01': 'Enero',
@@ -81,6 +82,33 @@ export const InicioTab: React.FC = () => {
           </span>
         </div>
       </div>
+
+      {/* Gráfica de pastel flotante: Balance / Distribución del Mes */}
+      {(metrics.inflows > 0 || metrics.outflows > 0) && (
+        <div className="space-y-1">
+          <div className="px-1 text-[11px] font-bold uppercase tracking-wider text-slate-400">
+            Distribución del Mes
+          </div>
+          <FloatingPieChart
+            totalLabel="Flujo Total"
+            totalFormatted={formatCurrency(metrics.inflows + metrics.outflows)}
+            data={[
+              {
+                label: 'Ingresos',
+                value: metrics.inflows,
+                color: '#2563EB',
+                secondaryText: formatCurrency(metrics.inflows),
+              },
+              {
+                label: 'Egresos',
+                value: metrics.outflows,
+                color: '#DC2626',
+                secondaryText: formatCurrency(metrics.outflows),
+              },
+            ]}
+          />
+        </div>
+      )}
 
       {/* Dos botones grandes en azul con letras blancas en negritas: Ingreso / Egreso */}
       <div className="grid grid-cols-2 gap-3 pt-2">

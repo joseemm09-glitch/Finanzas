@@ -26,6 +26,7 @@ import { useFinance } from '@/context/FinanceContext';
 import { formatCurrency } from '@/lib/calc';
 import { OutflowModal } from '@/components/modals/OutflowModal';
 import { TabType } from '@/components/Navigation';
+import { FloatingPieChart } from '@/components/charts/FloatingPieChart';
 
 interface EgresosTabProps {
   onNavigateToTab?: (tab: TabType) => void;
@@ -37,8 +38,8 @@ export const EgresosTab: React.FC<EgresosTabProps> = ({ onNavigateToTab }) => {
   const [isOutflowModalOpen, setIsOutflowModalOpen] = useState(false);
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
-  // Expanded sections
-  const [expandedSection, setExpandedSection] = useState<'basicos' | 'ocio' | 'movimientos' | null>('basicos');
+  // Expanded sections: Básicos por default cerrada (null)
+  const [expandedSection, setExpandedSection] = useState<'basicos' | 'ocio' | 'movimientos' | null>(null);
 
   // Month transactions (outflows only)
   const monthTxs = state.transactions.filter((tx) => tx.date.startsWith(selectedMonth));
@@ -106,6 +107,8 @@ export const EgresosTab: React.FC<EgresosTabProps> = ({ onNavigateToTab }) => {
         tx.pillar === 'patrimonio_inversion'
     )
     .reduce((sum, tx) => sum + tx.amount, 0);
+
+  const totalAllOutflows = totalBasicos + totalOcio + ahorroAmount;
 
   return (
     <div className="pt-4 pb-24 space-y-4 animate-in fade-in duration-150">
@@ -388,6 +391,38 @@ export const EgresosTab: React.FC<EgresosTabProps> = ({ onNavigateToTab }) => {
             </div>
           )}
         </div>
+        {/* Gráfica de pastel flotante para Egresos */}
+        {totalAllOutflows > 0 && (
+          <div className="space-y-1 pt-1">
+            <div className="px-1 text-[11px] font-bold uppercase tracking-wider text-slate-400">
+              Distribución de Egresos
+            </div>
+            <FloatingPieChart
+              totalLabel="Total Egresos"
+              totalFormatted={formatCurrency(totalAllOutflows)}
+              data={[
+                {
+                  label: 'Básicos',
+                  value: totalBasicos,
+                  color: '#1E3A8A',
+                  secondaryText: formatCurrency(totalBasicos),
+                },
+                {
+                  label: 'Ocio',
+                  value: totalOcio,
+                  color: '#F59E0B',
+                  secondaryText: formatCurrency(totalOcio),
+                },
+                {
+                  label: 'Ahorro',
+                  value: ahorroAmount,
+                  color: '#10B981',
+                  secondaryText: formatCurrency(ahorroAmount),
+                },
+              ]}
+            />
+          </div>
+        )}
       </div>
 
       {/* Button: + Registrar Egreso */}
