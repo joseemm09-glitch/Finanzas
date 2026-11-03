@@ -7,6 +7,9 @@ import {
   Zap, 
   Flame, 
   Wifi, 
+  ShoppingCart,
+  Car,
+  Fuel,
   UtensilsCrossed, 
   Compass, 
   Tv, 
@@ -14,7 +17,9 @@ import {
   ChevronRight, 
   ChevronDown, 
   Plus, 
-  Layers 
+  Receipt,
+  Clock,
+  ArrowUpRight
 } from 'lucide-react';
 import { useFinance } from '@/context/FinanceContext';
 import { formatCurrency } from '@/lib/calc';
@@ -31,10 +36,11 @@ export const EgresosTab: React.FC<EgresosTabProps> = ({ onNavigateToTab }) => {
   const [isOutflowModalOpen, setIsOutflowModalOpen] = useState(false);
 
   // Expanded sections
-  const [expandedSection, setExpandedSection] = useState<'basicos' | 'ocio' | 'ahorro' | null>('basicos');
+  const [expandedSection, setExpandedSection] = useState<'basicos' | 'ocio' | 'movimientos' | null>('basicos');
 
-  // Month transactions
+  // Month transactions (outflows only)
   const monthTxs = state.transactions.filter((tx) => tx.date.startsWith(selectedMonth));
+  const monthOutflows = monthTxs.filter((tx) => tx.type === 'outflow');
 
   // Incomes for percentage calculation
   const nominaInflows = monthTxs.filter(
@@ -55,9 +61,8 @@ export const EgresosTab: React.FC<EgresosTabProps> = ({ onNavigateToTab }) => {
 
   // Helper to sum by matching keywords in category or concept
   const sumItems = (keywords: string[]): number => {
-    return monthTxs
+    return monthOutflows
       .filter((tx) => {
-        if (tx.type !== 'outflow') return false;
         const text = `${tx.category} ${tx.concept}`.toLowerCase();
         return keywords.some((k) => text.includes(k.toLowerCase()));
       })
@@ -71,18 +76,22 @@ export const EgresosTab: React.FC<EgresosTabProps> = ({ onNavigateToTab }) => {
 
   const basicosItems = [
     { label: 'Renta (Fija Día 9)', icon: Building2, amount: rentToDisplay },
+    { label: 'Despensa', icon: ShoppingCart, amount: sumItems(['despensa', 'super', 'mandado', 'walmart', 'heb', 'soriana', 'costco']) },
+    { label: 'Servicio', icon: Zap, amount: sumItems(['servicio']) },
     { label: 'Agua', icon: Droplet, amount: sumItems(['agua']) },
     { label: 'Luz', icon: Zap, amount: sumItems(['luz', 'cfe']) },
     { label: 'Gas', icon: Flame, amount: sumItems(['gas']) },
-    { label: 'Internet', icon: Wifi, amount: sumItems(['internet', 'wifi', 'fibra']) },
+    { label: 'Internet', icon: Wifi, amount: sumItems(['internet', 'wifi', 'fibra', 'totalplay', 'telmex']) },
+    { label: 'Gasolina Vale', icon: Fuel, amount: sumItems(['gasolina', 'combustible', 'vale']) },
+    { label: 'Vehículo', icon: Car, amount: sumItems(['vehículo', 'vehiculo', 'auto', 'taller', 'mantenimiento']) },
   ];
   const totalBasicos = basicosItems.reduce((sum, item) => sum + item.amount, 0);
 
-  // Ocio sub-items
+  // Ocio sub-items (incluyendo Comida/Salida y Plataforma de Registrar Egreso)
   const ocioItems = [
-    { label: 'Comidas', icon: UtensilsCrossed, amount: sumItems(['comida', 'restaurante', 'almuerzo', 'cena']) },
+    { label: 'Comida/Salida', icon: UtensilsCrossed, amount: sumItems(['comida/salida', 'comida', 'restaurante', 'almuerzo', 'cena']) },
     { label: 'Salidas', icon: Compass, amount: sumItems(['salida', 'bar', 'evento', 'concierto', 'cine']) },
-    { label: 'Suscripciones', icon: Tv, amount: sumItems(['suscripción', 'suscripcion', 'plataforma', 'spotify', 'netflix', 'icloud', 'youtube', 'chatgpt']) },
+    { label: 'Plataforma / Suscripciones', icon: Tv, amount: sumItems(['plataforma', 'suscripción', 'suscripcion', 'spotify', 'netflix', 'icloud', 'youtube', 'chatgpt']) },
   ];
   const totalOcio = ocioItems.reduce((sum, item) => sum + item.amount, 0);
 
@@ -95,8 +104,6 @@ export const EgresosTab: React.FC<EgresosTabProps> = ({ onNavigateToTab }) => {
         tx.pillar === 'patrimonio_inversion'
     )
     .reduce((sum, tx) => sum + tx.amount, 0);
-
-  const totalAllOutflows = totalBasicos + totalOcio + ahorroAmount;
 
   return (
     <div className="pt-4 pb-24 space-y-4 animate-in fade-in duration-150">
@@ -136,7 +143,7 @@ export const EgresosTab: React.FC<EgresosTabProps> = ({ onNavigateToTab }) => {
         </div>
       </div>
 
-      {/* 3 Main Pillars: Básicos, Ocio, Ahorro */}
+      {/* 3 Main Pillars: Básicos, Ocio, Ahorro + Pestaña desplegable de Movimientos Recientes */}
       <div className="space-y-3">
         {/* 1. Básicos */}
         <div className="card-clean overflow-hidden left-bar-navy">
@@ -264,6 +271,85 @@ export const EgresosTab: React.FC<EgresosTabProps> = ({ onNavigateToTab }) => {
           <div className="text-base font-black font-mono text-emerald-700">
             {formatCurrency(ahorroAmount)}
           </div>
+        </div>
+
+        {/* 4. Movimientos Registrados del Mes (Pestaña desplegable / acordeón) */}
+        <div className="card-clean overflow-hidden">
+          <button
+            type="button"
+            onClick={() => setExpandedSection(expandedSection === 'movimientos' ? null : 'movimientos')}
+            className="w-full p-4 flex items-center justify-between text-left hover:bg-slate-50 transition-colors"
+          >
+            <div className="flex items-center gap-2.5">
+              <div className="p-1.5 bg-slate-100 text-slate-600 rounded-lg">
+                <Receipt strokeWidth={1.75} className="w-4 h-4" />
+              </div>
+              <div>
+                <span className="text-sm font-bold text-slate-900 block">Movimientos del Mes</span>
+                <span className="text-[11px] text-slate-400">
+                  {monthOutflows.length} {monthOutflows.length === 1 ? 'egreso registrado' : 'egresos registrados'}
+                </span>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-semibold text-slate-500">
+                {expandedSection === 'movimientos' ? 'Ocultar' : 'Ver todos'}
+              </span>
+              {expandedSection === 'movimientos' ? (
+                <ChevronDown strokeWidth={1.75} className="w-4 h-4 text-slate-400" />
+              ) : (
+                <ChevronRight strokeWidth={1.75} className="w-4 h-4 text-slate-400" />
+              )}
+            </div>
+          </button>
+
+          {expandedSection === 'movimientos' && (
+            <div className="px-4 pb-4 pt-1 border-t border-slate-100 space-y-2 bg-slate-50/50">
+              {monthOutflows.length === 0 ? (
+                <div className="py-4 text-center text-xs text-slate-400">
+                  No hay movimientos de egreso registrados en este mes
+                </div>
+              ) : (
+                monthOutflows.map((tx) => (
+                  <div
+                    key={tx.id}
+                    className="flex items-center justify-between py-2 border-b border-slate-100 last:border-none text-xs"
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-7 h-7 rounded-lg bg-red-50 text-red-600 flex items-center justify-center flex-shrink-0">
+                        <ArrowUpRight strokeWidth={1.75} className="w-4 h-4" />
+                      </div>
+                      <div>
+                        <div className="font-semibold text-slate-800">{tx.concept}</div>
+                        <div className="text-[10px] text-slate-400 flex items-center gap-1.5">
+                          <span>{tx.date}</span>
+                          {tx.timestamp && (
+                            <>
+                              <span>•</span>
+                              <span className="flex items-center gap-0.5">
+                                <Clock strokeWidth={1.75} className="w-2.5 h-2.5" />
+                                {tx.timestamp}
+                              </span>
+                            </>
+                          )}
+                          <span>•</span>
+                          <span className="font-medium text-slate-500">{tx.category}</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="font-mono font-bold text-red-600">
+                        -{formatCurrency(tx.amount)}
+                      </div>
+                      <div className="text-[9px] text-slate-400 capitalize">
+                        {tx.source.replace('_', ' ')}
+                      </div>
+                    </div>
+                  </div>
+                ))
+              )}
+            </div>
+          )}
         </div>
       </div>
 
