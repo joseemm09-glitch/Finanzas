@@ -19,7 +19,8 @@ import {
   Plus, 
   Receipt,
   Clock,
-  ArrowUpRight
+  ArrowUpRight,
+  Trash2
 } from 'lucide-react';
 import { useFinance } from '@/context/FinanceContext';
 import { formatCurrency } from '@/lib/calc';
@@ -31,9 +32,10 @@ interface EgresosTabProps {
 }
 
 export const EgresosTab: React.FC<EgresosTabProps> = ({ onNavigateToTab }) => {
-  const { state, selectedMonth } = useFinance();
+  const { state, selectedMonth, deleteTransaction } = useFinance();
   const [percentBase, setPercentBase] = useState<'nomina' | 'total'>('total');
   const [isOutflowModalOpen, setIsOutflowModalOpen] = useState(false);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
 
   // Expanded sections
   const [expandedSection, setExpandedSection] = useState<'basicos' | 'ocio' | 'movimientos' | null>('basicos');
@@ -313,15 +315,15 @@ export const EgresosTab: React.FC<EgresosTabProps> = ({ onNavigateToTab }) => {
                 monthOutflows.map((tx) => (
                   <div
                     key={tx.id}
-                    className="flex items-center justify-between py-2 border-b border-slate-100 last:border-none text-xs"
+                    className="flex items-center justify-between py-2 border-b border-slate-100 last:border-none text-xs gap-2"
                   >
-                    <div className="flex items-center gap-2.5">
+                    <div className="flex items-center gap-2.5 min-w-0 flex-1">
                       <div className="w-7 h-7 rounded-lg bg-red-50 text-red-600 flex items-center justify-center flex-shrink-0">
                         <ArrowUpRight strokeWidth={1.75} className="w-4 h-4" />
                       </div>
-                      <div>
-                        <div className="font-semibold text-slate-800">{tx.concept}</div>
-                        <div className="text-[10px] text-slate-400 flex items-center gap-1.5">
+                      <div className="min-w-0 flex-1">
+                        <div className="font-semibold text-slate-800 truncate">{tx.concept}</div>
+                        <div className="text-[10px] text-slate-400 flex items-center gap-1.5 flex-wrap">
                           <span>{tx.date}</span>
                           {tx.timestamp && (
                             <>
@@ -337,13 +339,48 @@ export const EgresosTab: React.FC<EgresosTabProps> = ({ onNavigateToTab }) => {
                         </div>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <div className="font-mono font-bold text-red-600">
-                        -{formatCurrency(tx.amount)}
+                    
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      <div className="text-right">
+                        <div className="font-mono font-bold text-red-600">
+                          -{formatCurrency(tx.amount)}
+                        </div>
+                        <div className="text-[9px] text-slate-400 capitalize">
+                          {tx.source.replace('_', ' ')}
+                        </div>
                       </div>
-                      <div className="text-[9px] text-slate-400 capitalize">
-                        {tx.source.replace('_', ' ')}
-                      </div>
+
+                      {/* Botón Eliminar con confirmación táctil rápida */}
+                      {confirmDeleteId === tx.id ? (
+                        <div className="flex items-center gap-1 bg-red-50 p-1 rounded-lg border border-red-200 animate-in fade-in">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              deleteTransaction(tx.id);
+                              setConfirmDeleteId(null);
+                            }}
+                            className="px-2 py-0.5 bg-red-600 text-white font-bold text-[10px] rounded hover:bg-red-700 transition-colors"
+                          >
+                            Borrar
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setConfirmDeleteId(null)}
+                            className="px-1.5 py-0.5 text-slate-500 font-medium text-[10px] hover:text-slate-700"
+                          >
+                            No
+                          </button>
+                        </div>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => setConfirmDeleteId(tx.id)}
+                          title="Eliminar movimiento"
+                          className="p-1.5 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors active:scale-95"
+                        >
+                          <Trash2 strokeWidth={1.75} className="w-3.5 h-3.5" />
+                        </button>
+                      )}
                     </div>
                   </div>
                 ))

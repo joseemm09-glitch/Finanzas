@@ -100,13 +100,26 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
       const nextWallets = { ...prev.wallets };
       // Revert wallet balance
       if (target.type === 'inflow') {
-        if (target.source === 'banamex_194') nextWallets.banamexLiquid -= target.amount;
-        if (target.source === 'efectivo') nextWallets.cash -= target.amount;
+        if (target.tier === 'tier3_estructuras' && target.metadata) {
+          const free = target.metadata.projectFree || 0;
+          const patrimony = target.metadata.projectPatrimony || 0;
+          nextWallets.banamexLiquid -= target.amount;
+          nextWallets.projectFreeBucket = Math.max(0, nextWallets.projectFreeBucket - free);
+          nextWallets.investment15Balance = Math.max(0, nextWallets.investment15Balance - patrimony);
+        } else {
+          if (target.source === 'banamex_194') nextWallets.banamexLiquid -= target.amount;
+          if (target.source === 'efectivo') nextWallets.cash -= target.amount;
+        }
       } else {
         if (target.source === 'banamex_194') nextWallets.banamexLiquid += target.amount;
         if (target.source === 'efectivo') nextWallets.cash += target.amount;
         if (target.source === 'vale_gasolina') nextWallets.gasolineVoucher += target.amount;
         if (target.source === 'fondo_vehiculo') nextWallets.vehicleFund += target.amount;
+
+        // Si era una transferencia a ahorro/inversión 15%, revertir el balance acumulado
+        if (target.category === 'Inversión Liquidez 15%' || target.category === 'Ahorro') {
+          nextWallets.investment15Balance = Math.max(0, nextWallets.investment15Balance - target.amount);
+        }
       }
 
       return {
