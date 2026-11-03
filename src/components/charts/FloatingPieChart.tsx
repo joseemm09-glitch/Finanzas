@@ -145,3 +145,4 @@ export const FloatingPieChart: React.FC<FloatingPieChartProps> = ({
     </div>
   );
 };
+

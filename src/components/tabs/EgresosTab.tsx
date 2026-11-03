@@ -1,22 +1,22 @@
 'use client';
 
 import React, { useState } from 'react';
-import { 
-  Building2, 
-  Droplet, 
-  Zap, 
-  Flame, 
-  Wifi, 
+import {
+  Building2,
+  Droplet,
+  Zap,
+  Flame,
+  Wifi,
   ShoppingCart,
   Car,
   Fuel,
-  UtensilsCrossed, 
-  Compass, 
-  Tv, 
-  PiggyBank, 
-  ChevronRight, 
-  ChevronDown, 
-  Plus, 
+  UtensilsCrossed,
+  Compass,
+  Tv,
+  PiggyBank,
+  ChevronRight,
+  ChevronDown,
+  Plus,
   Receipt,
   Clock,
   ArrowUpRight,
@@ -126,22 +126,20 @@ export const EgresosTab: React.FC<EgresosTabProps> = ({ onNavigateToTab }) => {
           <button
             type="button"
             onClick={() => setPercentBase('nomina')}
-            className={`px-3 py-1 rounded-full transition-all ${
-              percentBase === 'nomina'
+            className={`px-3 py-1 rounded-full transition-all ${percentBase === 'nomina'
                 ? 'bg-white text-[#1E3A8A] shadow-sm font-bold'
                 : 'text-slate-600 hover:text-slate-900'
-            }`}
+              }`}
           >
             Nómina
           </button>
           <button
             type="button"
             onClick={() => setPercentBase('total')}
-            className={`px-3 py-1 rounded-full transition-all ${
-              percentBase === 'total'
+            className={`px-3 py-1 rounded-full transition-all ${percentBase === 'total'
                 ? 'bg-white text-[#1E3A8A] shadow-sm font-bold'
                 : 'text-slate-600 hover:text-slate-900'
-            }`}
+              }`}
           >
             Total
           </button>
@@ -342,7 +340,7 @@ export const EgresosTab: React.FC<EgresosTabProps> = ({ onNavigateToTab }) => {
                         </div>
                       </div>
                     </div>
-                    
+
                     <div className="flex items-center gap-2 flex-shrink-0">
                       <div className="text-right">
                         <div className="font-mono font-bold text-red-600">
