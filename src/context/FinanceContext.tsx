@@ -4,6 +4,9 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { FinanceState, Transaction, PayrollRecord, UserSettings, PPRData, Subscription } from '@/types/finance';
 import { INITIAL_STATE } from '@/lib/constants';
 import { loadStoredState, saveStoredState, exportStateToJson, importStateFromJson } from '@/lib/storage';
+import { supabase, isSupabaseConfigured } from '@/lib/supabase';
+
+const USER_ID = 'jose_marquez';
 
 interface FinanceContextType {
   state: FinanceState;
@@ -30,15 +33,75 @@ export const FinanceProvider: React.FC<{ children: React.ReactNode }> = ({ child
   const [isInitialized, setIsInitialized] = useState(false);
 
   useEffect(() => {
+    // 1. Cargar caché local inmediato para que abra instantáneo
     const loaded = loadStoredState();
     setState(loaded);
     setIsInitialized(true);
+
+    // 2. Si Supabase está configurado, sincronizar con la nube
+    if (isSupabaseConfigured && supabase) {
+      const client = supabase;
+      // Cargar el estado más reciente de la nube
+      const fetchRemoteData = async () => {
+        try {
+          const { data, error } = await client
+            .from('finance_state')
+            .select('data')
+            .eq('id', USER_ID)
+            .single();
+
+          if (data && data.data) {
+            setState(data.data as FinanceState);
+            saveStoredState(data.data as FinanceState);
+          } else if (error && error.code === 'PGRST116') {
+            // No existe fila aún, insertar el estado inicial
+            await client.from('finance_state').insert({ id: USER_ID, data: loaded });
+          }
+        } catch (err) {
+          console.error('Error fetching Supabase data:', err);
+        }
+      };
+
+      fetchRemoteData();
+
+      // Suscribirse a cambios en tiempo real desde cualquier dispositivo
+      const channel = client
+        .channel('finance_realtime')
+        .on(
+          'postgres_changes',
+          { event: 'UPDATE', schema: 'public', table: 'finance_state', filter: `id=eq.${USER_ID}` },
+          (payload) => {
+            if (payload.new && (payload.new as any).data) {
+              const remoteState = (payload.new as any).data as FinanceState;
+              setState(remoteState);
+              saveStoredState(remoteState);
+            }
+          }
+        )
+        .subscribe();
+
+      return () => {
+        client.removeChannel(channel);
+      };
+    }
   }, []);
 
   const updateStateAndPersist = (updater: (prev: FinanceState) => FinanceState) => {
     setState((prev) => {
       const next = updater(prev);
       saveStoredState(next);
+
+      // Sincronizar hacia Supabase si está activo
+      if (isSupabaseConfigured && supabase) {
+        const client = supabase;
+        client
+          .from('finance_state')
+          .upsert({ id: USER_ID, data: next, updated_at: new Date().toISOString() })
+          .then(({ error }) => {
+            if (error) console.error('Error saving to Supabase:', error);
+          });
+      }
+
       return next;
     });
   };
